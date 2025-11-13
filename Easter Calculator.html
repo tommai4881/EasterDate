@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Tính Lễ Phục Sinh</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Sử dụng font Inter cho giao diện sạch sẽ */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Thêm font Inter từ Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-3xl p-6 md:p-8 rounded-2xl shadow-xl">
+        
+        <!-- Tiêu đề -->
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">
+            Trình Tính Lễ Phục Sinh
+        </h1>
+        <p class="text-center text-gray-600 mb-6">
+            Giải thích tương tác các thuật toán từ tài liệu của bạn.
+        </p>
+        
+        <!-- Vùng nhập liệu -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <!-- Nhập năm -->
+            <div>
+                <label for="year" class="block text-sm font-medium text-gray-700 mb-1">Năm (sau CN)</label>
+                <input type="number" id="year" value="2025" min="1"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            
+            <!-- Chọn thuật toán -->
+            <div>
+                <label for="algorithm" class="block text-sm font-medium text-gray-700 mb-1">Chọn Thuật Toán</label>
+                <select id="algorithm"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="gauss">Gauss (Tối ưu)</option>
+                    <option value="clavius">Christopher Clavius (Gregorian)</option>
+                    <option value="anonymous">Anonymous NY (1876)</option>
+                    <option value="meeus_julian">Meeus (Lịch Julien)</option>
+                    <option value="carter_gregorian">Carter (Gregorian Mở rộng)</option>
+                    <option value="bradley">Bradley (Từ Bảng)</option>
+                    <option value="typikon">Typikon Chính Thống Giáo</option>
+                </select>
+            </div>
+
+            <!-- MỚI: Tùy chọn Lịch -->
+            <div>
+                <label for="calendarOverride" class="block text-sm font-medium text-gray-700 mb-1">Tùy chọn Lịch</label>
+                <select id="calendarOverride"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="auto">Tự động (theo năm)</option>
+                    <option value="force_gregorian">Bắt buộc Gregorian</option>
+                    <option value="force_julian">Bắt buộc Julien</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Nút tính toán -->
+        <button id="calculateBtn"
+                class="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+            Tính Toán & Giải Thích Các Bước
+        </button>
+        
+        <!-- Vùng kết quả -->
+        <div id="result-container" class="mt-8 border-t border-gray-200 pt-6 hidden">
+            <!-- Kết quả cuối cùng -->
+            <h2 class="text-2xl font-bold text-center text-blue-700 mb-4" id="final-result"></h2>
+            
+            <!-- Giải thích các bước -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Các bước tính toán:</h3>
+                <pre id="steps" class="bg-gray-50 p-4 rounded-lg text-sm text-gray-700 font-mono overflow-x-auto whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Hàm Trợ Giúp ---
+
+        /**
+         * Hàm Modulo (toán học) để xử lý số âm,
+         * hoạt động giống % của Python.
+         */
+        function mod(n, m) {
+            return ((n % m) + m) % m;
+        }
+
+        /**
+         * Định dạng ngày tháng sang tiếng Việt.
+         * (Ví dụ: 31, 3) -> "31 tháng 3"
+         */
+        function formatDate(day, month) {
+            const monthNames = ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+            return `${day} tháng ${monthNames[month]}`;
+        }
+
+        // --- Các Thuật Toán Tính Toán ---
+        // Mỗi hàm trả về một đối tượng: { dateString: "...", steps: "..." }
+
+        /**
+         * Thuật toán Gauss Tối Ưu
+         * Dựa trên `easter1(y)` trong tài liệu.
+         */
+        function calculateGauss(y, override) {
+            let steps = [];
+            
+            let useGregorian;
+            if (override === 'force_gregorian') {
+                useGregorian = true;
+                steps.push(`Thông báo: Bắt buộc dùng Lịch Gregorian.`);
+            } else if (override === 'force_julian') {
+                useGregorian = false;
+                steps.push(`Thông báo: Bắt buộc dùng Lịch Julien.`);
+            } else { // 'auto'
+                useGregorian = (y > 1582);
+                steps.push(`Thông báo: Tự động chọn lịch (Năm ${y} > 1582 = ${useGregorian}).`);
+            }
+
+            const a = mod(y, 19);
+            steps.push(`a = y % 19 = ${a}`);
+            
+            const b = mod(y, 4);
+            steps.push(`b = y % 4 = ${b}`);
+            
+            const c = mod(y, 7);
+            steps.push(`c = y % 7 = ${c}`);
+            
+            const k = Math.floor(y / 100);
+            steps.push(`k = y // 100 = ${k}`);
+            
+            const p = Math.floor((13 + 8 * k) / 25);
+            steps.push(`p = (13 + 8 * k) // 25 = ${p}`);
+            
+            const q = Math.floor(k / 4);
+            steps.push(`q = k // 4 = ${q}`);
+            
+            let m, n;
+            if (useGregorian) {
+                m = mod(15 - p + k - q, 30);
+                steps.push(`(Lịch Gregorian) m = (15 - p + k - q) % 30 = ${m}`);
+                n = mod(4 + k - q, 7);
+                steps.push(`(Lịch Gregorian) n = (4 + k - q) % 7 = ${n}`);
+            } else {
+                m = 15;
+                steps.push(`(Lịch Julien) m = 15`);
+                n = 6;
+                steps.push(`(Lịch Julien) n = 6`);
+            }
+            
+            let d = mod(19 * a + m, 30);
+            steps.push(`d = (19 * a + m) % 30 = ${d}`);
+            
+            // Xử lý ngoại lệ (epact 25 đen và 24)
+            if (d === 29) {
+                d = 28;
+                steps.push(`Ngoại lệ: d = 29 -> d = 28`);
+            } else if (d === 28 && a > 10) {
+                d = 27;
+                steps.push(`Ngoại lệ: d = 28 và a > 10 -> d = 27`);
+            }
+            
+            const e = mod(2 * b + 4 * c + 6 * d + n, 7);
+            steps.push(`e = (2 * b + 4 * c + 6 * d + n) % 7 = ${e}`);
+            
+            const day = d + e + 22;
+            let finalDay, finalMonth;
+            
+            if (day > 31) {
+                finalDay = day - 31; // d + e - 9
+                finalMonth = 4; // Tháng 4
+                steps.push(`Ngày = d + e + 22 = ${day} -> (Tháng 3 có 31 ngày)`);
+                steps.push(`Lễ Phục Sinh = ${finalDay} tháng 4`);
+            } else {
+                finalDay = day;
+                finalMonth = 3; // Tháng 3
+                steps.push(`Ngày = d + e + 22 = ${day}`);
+                steps.push(`Lễ Phục Sinh = ${finalDay} tháng 3`);
+            }
+            
+            return {
+                dateString: formatDate(finalDay, finalMonth),
+                steps: steps.join('\n')
+            };
+        }
+
+        /**
+         * Thuật toán Typikon Chính Thống Giáo
+         * Dựa trên `Typikon(y)` trong tài liệu.
+         */
+        function calculateTypikon(y, override) {
+            let steps = [];
+
+            // 1. Tính toán Lễ Phục Sinh theo Lịch Julien (cốt lõi của Typikon)
+            const l = mod(y + 16, 19) + 1;
+            steps.push(`l (Chu kỳ Mặt Trăng) = (y + 16) % 19 + 1 = ${l}`);
+            
+            const s = mod(y + 19, 28) + 1;
+            steps.push(`s (Chu kỳ Mặt Trời) = (y + 19) % 28 + 1 = ${s}`);
+
+            const f_rule = (l < 17) ? 3 : 4;
+            const f = mod(11 * l + f_rule, 30);
+            steps.push(`f (Nền móng) = (11 * l + ${f_rule}) % 30 = ${f}`);
+
+            const m = (f < 27) ? (47 - f) : (77 - f);
+            steps.push(`m (Rằm Vượt Qua) = ${m} (kể từ 1/3)`);
+            
+            const c_typikon = mod(s + Math.floor(s / 4) - 1, 7) + 1;
+            steps.push(`c (Đồng dạng) = (s + s // 4 - 1) % 7 + 1 = ${c_typikon} (1=CN, 2=T2,...)`);
+
+            const h = mod(m + c_typikon + 3, 7);
+            steps.push(`h (Thứ của rằm) = (m + c + 3) % 7 = ${h} (0=CN, 1=T2,...)`);
+
+            const march = m + 7 - h;
+            const april = m - 24 - h;
+
+            let finalDayJul, finalMonthJul;
+            if (march > 31) {
+                finalDayJul = april;
+                finalMonthJul = 4; // Tháng 4
+                steps.push(`Ngày Phục Sinh (Julien) = m - 24 - h = ${finalDayJul} tháng 4`);
+            } else {
+                finalDayJul = march;
+                finalMonthJul = 3; // Tháng 3
+                steps.push(`Ngày Phục Sinh (Julien) = m + 7 - h = ${finalDayJul} tháng 3`);
+            }
+
+            // 2. Quyết định có chuyển đổi sang Gregorian hay không
+            let useGregorianConversion;
+            if (override === 'force_gregorian') {
+                useGregorianConversion = true;
+                steps.push(`Thông báo: Bắt buộc chuyển đổi sang Lịch Gregorian.`);
+            } else if (override === 'force_julian') {
+                useGregorianConversion = false;
+                steps.push(`Thông báo: Bắt buộc giữ Lịch Julien.`);
+            } else { // 'auto'
+                useGregorianConversion = (y > 1582);
+                steps.push(`Thông báo: Tự động (Năm ${y} > 1582 = ${useGregorianConversion}).`);
+            }
+
+            // 3. Thực hiện chuyển đổi nếu cần
+            if (useGregorianConversion) {
+                steps.push("Áp dụng chuyển đổi sang Lịch Gregorian...");
+                const correction = Math.floor(y / 100) - Math.floor(y / 400) - 2;
+                steps.push(`Hiệu số ngày = y // 100 - y // 400 - 2 = ${correction}`);
+                
+                // Sử dụng đối tượng Date để xử lý cộng ngày một cách an toàn
+                let julianDate = new Date(y, finalMonthJul - 1, finalDayJul);
+                steps.push(`Ngày Lễ Phục Sinh (Julien) là: ${formatDate(finalDayJul, finalMonthJul)}`);
+                
+                julianDate.setDate(julianDate.getDate() + correction);
+                steps.push(`Cộng ${correction} ngày...`);
+
+                const finalDayGreg = julianDate.getDate();
+                const finalMonthGreg = julianDate.getMonth() + 1; // getMonth() trả về 0-11
+                
+                return {
+                    dateString: formatDate(finalDayGreg, finalMonthGreg) + " (Đã chuyển sang Greg.)",
+                    steps: steps.join('\n')
+                };
+
+            } else {
+                // Trả về ngày Lịch Julien
+                steps.push("Giữ nguyên ngày Lịch Julien.");
+                return {
+                    dateString: formatDate(finalDayJul, finalMonthJul) + " (Lịch Julien)",
+                    steps: steps.join('\n')
+                };
+            }
+        }
+
+
+        /**
+         * Thuật toán Anonymous NY (1876)
+         * Dựa trên `anonymousNY(y)` trong tài liệu. (Chỉ cho năm >= 1583)
+         */
+        function calculateAnonymousNY(y, override) {
+            let steps = [];
+
+            let useGregorian;
+            if (override === 'force_gregorian') {
+                useGregorian = true;
+                steps.push(`Thông báo: Bắt buộc dùng Lịch Gregorian.`);
+            } else if (override === 'force_julian') {
+                steps.push(`Lỗi: Phương pháp này không hỗ trợ Lịch Julien.`);
+                return {
+                    dateString: "Không áp dụng",
+                    steps: "Phương pháp này chỉ áp dụng cho Lịch Gregorian (sau 1582)."
+                };
+            } else { // 'auto'
+                useGregorian = (y > 1582);
+                steps.push(`Thông báo: Tự động chọn lịch (Năm ${y} > 1582 = ${useGregorian}).`);
+            }
+            
+            if (!useGregorian) {
+                steps.push(`Lỗi: Năm ${y} là Lịch Julien.`);
+                 return {
+                    dateString: "Không áp dụng",
+                    steps: "Phương pháp này chỉ áp dụng cho Lịch Gregorian (sau 1582)."
+                };
+            }
+
+            const a = mod(y, 19);
+            steps.push(`a = y % 19 = ${a}`);
+            
+            const b = Math.floor(y / 100);
+            steps.push(`b = y // 100 = ${b}`);
+            
+            const c = mod(y, 100);
+            steps.push(`c = y % 100 = ${c}`);
+            
+            const d = Math.floor(b / 4);
+            steps.push(`d = b // 4 = ${d}`);
+            
+            const e = mod(b, 4);
+            steps.push(`e = b % 4 = ${e}`);
+            
+            const f = Math.floor((b + 8) / 25);
+            steps.push(`f = (b + 8) // 25 = ${f}`);
+            
+            const g = Math.floor((b - f + 1) / 3);
+            steps.push(`g = (b - f + 1) // 3 = ${g}`);
+            
+            const h = mod(19 * a + b - d - g + 15, 30);
+            steps.push(`h = (19 * a + b - d - g + 15) % 30 = ${h}`);
+            
+            const i = Math.floor(c / 4);
+            steps.push(`i = c // 4 = ${i}`);
+            
+            const k = mod(c, 4);
+            steps.push(`k = c % 4 = ${k}`);
+            
+            const l = mod(32 + 2 * e + 2 * i - h - k, 7);
+            steps.push(`l = (32 + 2 * e + 2 * i - h - k) % 7 = ${l}`);
+            
+            const m = Math.floor((a + 11 * h + 22 * l) / 451);
+            steps.push(`m = (a + 11 * h + 22 * l) // 451 = ${m}`);
+            
+            const n = Math.floor((h + l - 7 * m + 114) / 31);
+            steps.push(`n (Tháng) = (h + l - 7 * m + 114) // 31 = ${n}`);
+            
+            const o = mod(h + l - 7 * m + 114, 31) + 1;
+            steps.push(`o (Ngày) = (h + l - 7 * m + 114) % 31 + 1 = ${o}`);
+
+            return {
+                dateString: formatDate(o, n),
+                steps: steps.join('\n')
+            };
+        }
+
+        /**
+         * Thuật toán Meeus (Lịch Julien)
+         * Dựa trên `meeus(y)` (Áp dụng cho Chính Thống Giáo / Công Giáo trước 1583)
+         */
+        function calculateMeeusJulian(y, override) {
+            let steps = [];
+            
+            if (override === 'force_gregorian') {
+                steps.push(`Lỗi: Phương pháp này chỉ hỗ trợ Lịch Julien.`);
+                return {
+                    dateString: "Không áp dụng",
+                    steps: "Phương pháp này chỉ áp dụng cho Lịch Julien."
+                };
+            }
+            
+            if (override === 'auto' && y > 1582) {
+                 steps.push(`Cảnh báo: Phương pháp này tính Lễ Phục Sinh theo lịch Julien, (tự động phát hiện năm ${y} là Gregorian).`);
+            } else {
+                 steps.push("Thông báo: Tính Lễ Phục Sinh theo lịch Julien.");
+            }
+            
+            const a = mod(y, 4);
+            steps.push(`a = y % 4 = ${a}`);
+            
+            const b = mod(y, 7);
+            steps.push(`b = y % 7 = ${b}`);
+            
+            const c = mod(y, 19);
+            steps.push(`c = y % 19 = ${c}`);
+            
+            const d = mod(19 * c + 15, 30);
+            steps.push(`d = (19 * c + 15) % 30 = ${d}`);
+            
+            const e = mod(2 * a + 4 * b - d + 34, 7);
+            steps.push(`e = (2 * a + 4 * b - d + 34) % 7 = ${e}`);
+            
+            const month = Math.floor((d + e + 114) / 31);
+            steps.push(`month = (d + e + 114) // 31 = ${month}`);
+            
+            const day = mod(d + e + 114, 31) + 1;
+            steps.push(`day = (d + e + 114) % 31 + 1 = ${day}`);
+
+            return {
+                dateString: formatDate(day, month) + " (Lịch Julien)",
+                steps: steps.join('\n')
+            };
+        }
+
+        /**
+         * Thuật toán Carter (Gregorian Mở rộng)
+         * Dựa trên `carter_gregorien(y)` trong tài liệu.
+         */
+        function calculateCarterGregorian(y, override) {
+            let steps = [];
+
+            let useGregorian;
+            if (override === 'force_gregorian') {
+                useGregorian = true;
+                steps.push(`Thông báo: Bắt buộc dùng Lịch Gregorian.`);
+            } else if (override === 'force_julian') {
+                useGregorian = false;
+                steps.push(`Thông báo: Bắt buộc dùng Lịch Julien.`);
+            } else { // 'auto'
+                useGregorian = (y > 1582);
+                steps.push(`Thông báo: Tự động chọn lịch (Năm ${y} > 1582 = ${useGregorian}).`);
+            }
+
+            const a = mod(y, 19);
+            steps.push(`a = y % 19 = ${a}`);
+            
+            let b, s, m, e;
+            if (useGregorian) {
+                const k = Math.floor(y / 100);
+                steps.push(`k = y // 100 = ${k}`);
+                
+                s = k - Math.floor(k / 4) - 12;
+                steps.push(`s (Greg.) = k - k // 4 - 12 = ${s}`);
+                
+                m = Math.floor(8 * (k - 14) / 25);
+                steps.push(`m (Greg.) = 8 * (k - 14) // 25 = ${m}`);
+                
+                b = 202 + s - m - 11 * a;
+                steps.push(`b (Greg.) = 202 + s - m - 11 * a = ${b}`);
+            } else {
+                s = 0; // Cần thiết cho bước 'e' của Gregorian nếu bị ép
+                b = 225 - 11 * a;
+                steps.push(`b (Julien) = 225 - 11 * a = ${b}`);
+            }
+
+            let d = mod(b, 30) + 21;
+            steps.push(`d = b % 30 + 21 = ${d}`);
+
+            // Xử lý ngoại lệ (Chỉ Gregorian)
+            if (useGregorian) {
+                if ((d === 49 && a > 10) || d === 50) {
+                    d -= 1;
+                    steps.push(`Ngoại lệ (Greg.): d = ${d+1} -> d = ${d}`);
+                }
+            }
+            
+            if (useGregorian) {
+                e = mod(y + Math.floor(y / 4) + d - 10 - s, 7);
+                steps.push(`e (Greg.) = (y + y // 4 + d - 10 - s) % 7 = ${e}`);
+            } else {
+                // Công thức Lịch Julien (từ carter_julian(y))
+                e = mod(y + Math.floor(y / 4) + d, 7); 
+                 steps.push(`e (Julien) = (y + y // 4 + d) % 7 = ${e}`);
+            }
+
+
+            const q_3 = d + 7 - e; // Ngày tháng 3
+            steps.push(`q_3 (Ngày T3) = d + 7 - e = ${q_3}`);
+            
+            let finalDay, finalMonth;
+            if (q_3 > 31) {
+                finalDay = d - 24 - e;
+                finalMonth = 4; // Tháng 4
+                steps.push(`q_3 > 31 -> Lễ Phục Sinh là Tháng 4`);
+                steps.push(`Ngày T4 = d - 24 - e = ${finalDay}`);
+            } else {
+                finalDay = q_3;
+                finalMonth = 3; // Tháng 3
+                steps.push(`q_3 <= 31 -> Lễ Phục Sinh là Tháng 3`);
+            }
+
+            return {
+                dateString: formatDate(finalDay, finalMonth),
+                steps: steps.join('\n')
+            };
+        }
+
+        /**
+         * Thuật toán Bradley (suy ra từ các bảng)
+         * Dựa trên `Bradley(y)` trong tài liệu.
+         */
+        function calculateBradley(y, override) {
+            let steps = [];
+
+            let useGregorian;
+            if (override === 'force_gregorian') {
+                useGregorian = true;
+                steps.push(`Thông báo: Bắt buộc dùng Lịch Gregorian.`);
+            } else if (override === 'force_julian') {
+                useGregorian = false;
+                steps.push(`Thông báo: Bắt buộc dùng Lịch Julien.`);
+            } else { // 'auto'
+                useGregorian = (y > 1582);
+                steps.push(`Thông báo: Tự động chọn lịch (Năm ${y} > 1582 = ${useGregorian}).`);
+            }
+
+            const g = mod(y, 19) + 1;
+            steps.push(`g (Chỉ số vàng) = y % 19 + 1 = ${g}`);
+
+            let s, l, c, p, d;
+
+            if (useGregorian) {
+                s = Math.floor((y - 1600) / 100) - Math.floor((y - 1600) / 400);
+                steps.push(`s (PT Mặt Trời - Greg.) = (y - 1600) // 100 - (y - 1600) // 400 = ${s}`);
+                
+                l = Math.floor(8 * (Math.floor(y / 100) - 14) / 25);
+                steps.push(`l (PT Mặt Trăng - Greg.) = 8 * (y // 100 - 14) // 25 = ${l}`);
+                
+                c = s - l;
+                steps.push(`c (Mã Cypher - Greg.) = s - l = ${c}`);
+                
+                p = mod(3 - 11 * g + c, 30);
+                steps.push(`p (Rằm Vượt Qua - Greg.) = (3 - 11 * g + c) % 30 = ${p}`);
+                
+                // Chữ Chúa Nhật (Dominical Letter) - Dùng công thức từ ví dụ
+                d = mod(y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400), 7);
+                steps.push(`d (Chữ Chúa Nhật - Greg.) = (y + y//4 - y//100 + y//400) % 7 = ${d}`);
+
+            } else {
+                // Trường hợp Lịch Julien (trước 1583)
+                p = mod(26 - 11 * g, 30);
+                steps.push(`(Lịch Julien) p (Rằm Vượt Qua) = (26 - 11 * g) % 30 = ${p}`);
+                
+                d = mod(y + Math.floor(y / 4) + 5, 7);
+                steps.push(`(Lịch Julien) d (Chữ Chúa Nhật) = (y + y // 4 + 5) % 7 = ${d}`);
+            }
+
+            // Xử lý ngoại lệ (dựa theo văn bản: g > 11)
+            if (p === 29) {
+                p = 28;
+                steps.push(`Ngoại lệ: p = 29 -> p = 28`);
+            } else if (p === 28 && g > 11) {
+                p = 27;
+                steps.push(`Ngoại lệ: p = 28 và g > 11 -> p = 27`);
+            }
+
+            const march = p + 22 + mod(4 - d - p, 7);
+            steps.push(`Ngày T3 = p + 22 + (4 - d - p) % 7 = ${march}`);
+            
+            const april = p - 9 + mod(4 - d - p, 7);
+            steps.push(`Ngày T4 (nếu T3 > 31) = p - 9 + (4 - d - p) % 7 = ${april}`);
+
+            let finalDay, finalMonth;
+            if (march > 31) {
+                finalDay = april;
+                finalMonth = 4; // Tháng 4
+                steps.push(`-> Kết quả: ${finalDay} tháng 4`);
+            } else {
+                finalDay = march;
+                finalMonth = 3; // Tháng 3
+                steps.push(`-> Kết quả: ${finalDay} tháng 3`);
+            }
+
+            return {
+                dateString: formatDate(finalDay, finalMonth),
+                steps: steps.join('\n')
+            };
+        }
+
+
+        // --- Bộ lắng nghe sự kiện chính ---
+
+        const calculateBtn = document.getElementById('calculateBtn');
+        const yearInput = document.getElementById('year');
+        const algorithmSelect = document.getElementById('algorithm');
+        const calendarOverrideSelect = document.getElementById('calendarOverride'); // MỚI
+        const resultContainer = document.getElementById('result-container');
+        const finalResultEl = document.getElementById('final-result');
+        const stepsEl = document.getElementById('steps');
+
+        calculateBtn.addEventListener('click', () => {
+            const year = parseInt(yearInput.value, 10);
+            const algorithm = algorithmSelect.value;
+            const override = calendarOverrideSelect.value; // MỚI
+            
+            if (isNaN(year) || year < 1) {
+                finalResultEl.textContent = "Vui lòng nhập một năm hợp lệ.";
+                stepsEl.textContent = "";
+                resultContainer.classList.remove('hidden');
+                return;
+            }
+
+            let result;
+
+            switch (algorithm) {
+                case 'gauss':
+                    result = calculateGauss(year, override);
+                    break;
+                case 'clavius':
+                    result = calculateClavius(year, override);
+                    break;
+                case 'anonymous':
+                    result = calculateAnonymousNY(year, override);
+                    break;
+                case 'meeus_julian':
+                    result = calculateMeeusJulian(year, override);
+                    break;
+                case 'carter_gregorian':
+                    result = calculateCarterGregorian(year, override);
+                    break;
+                case 'bradley':
+                    result = calculateBradley(year, override);
+                    break;
+                case 'typikon':
+                    result = calculateTypikon(year, override);
+                    break;
+                default:
+                    result = { dateString: "Lỗi", steps: "Thuật toán không xác định." };
+            }
+
+            // Hiển thị kết quả
+            finalResultEl.textContent = `Kết quả cho năm ${year}: ${result.dateString}`;
+            stepsEl.textContent = result.steps;
+            resultContainer.classList.remove('hidden');
+        });
+
+    </script>
+</body>
+</html>

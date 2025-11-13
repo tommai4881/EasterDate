@@ -1,0 +1,19 @@
+THUẬT TOÁN GAUSS TỐI ƯU ĐỂ TÌM LỄ PHỤC SINH
+
+def easter(y): # Thuật toán Gauss tối ưu để tìm Lễ Phục Sinh
+    a = y % 19 # Chỉ số vàng
+    b = y % 4 # Năm nhuận
+    c = y % 7 # Ngày trong tuần
+    k = y // 100 # Thế kỷ
+    p = (13 + 8 * k) // 25
+    q = k // 4 # Số năm nhuận trong thế kỷ
+    m = (15 - p + k - q) % 30 if y > 1582 else 15 # Hằng hiệu chỉnh âm lịch
+    n = (4 + k - q) % 7 if y > 1582 else 6 # Hằng hiệu chỉnh dương lịch
+    d = (19 * a + m) % 30 # Ngày Rằm Vượt Qua
+    if d == 29 or (d == 28 and a > 10): d -= 1 # Xử lý ngoại lệ
+    e = (2 * b + 4 * c + 6 * d + n) % 7 # Số ngày đến Lễ Phục Sinh
+    march = d + e + 22 # Ngày Lễ Phục Sinh trong tháng Thánh Giuse (mars)
+    april = d + e – 9 # Ngày Lễ Phục Sinh trong tháng Thống Nhất (avril)
+    return (april, 4) if march > 31 else (march, 3) # Ngày Lễ Phục Sinh
+
+Lễ Phục Sinh là ngày Chúa Nhật giữa 22 mars và 25 avril dương lịch, tưởng niệm sự Phục Sinh khải hoàn của Chúa Giêsu từ cõi chết. Đây là ngày lễ trọng đại của Cơ Đốc Giáo.

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infographic: Các Thuật Toán Tính Lễ Phục Sinh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --card-color: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --accent-primary: #3182ce;
+            --accent-secondary: #2b6cb0;
+            --chart-1: #63b3ed;
+            --chart-2: #4299e1;
+            --chart-3: #3182ce;
+            --chart-4: #2b6cb0;
+            --chart-5: #2c5282;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .chart-container-sm {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        .flow-card {
+            background-color: var(--card-color);
+            border: 1px solid var(--accent-primary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+        .flow-arrow {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--accent-secondary);
+            margin: 0.25rem 0;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-[var(--accent-secondary)] text-white p-6 shadow-md">
+        <div class="container mx-auto">
+            <h1 class="text-3xl font-bold">Infographic: Giải Mã Các Thuật Toán Tính Lễ Phục Sinh</h1>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-3 text-[var(--accent-primary)]">Bài Toán Thiên Văn Phức Tạp</h2>
+            <p class="text-base text-[var(--text-secondary)]">
+                Việc xác định ngày Lễ Phục Sinh là một trong những bài toán tính toán lâu đời và phức tạp nhất, kết hợp giữa chu kỳ Mặt Trăng (Rằm Vượt Qua) và chu kỳ Mặt Trời (Chúa Nhật sau Xuân Phân). Qua nhiều thế kỷ, các học giả từ Clavius, Gauss, đến Meeus đã phát triển nhiều phương pháp khác nhau, từ các bảng tra cứu phức tạp đến các thuật toán tinh vi, để giải quyết vấn đề này. Infographic này khám phá các phương pháp chính và sự khác biệt trong kết quả của chúng.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4 text-[var(--accent-primary)]">So Sánh Kết Quả: Gregorian vs. Julian (1990-2030)</h2>
+            <p class="text-base text-[var(--text-secondary)] mb-4">
+                Biểu đồ đường này minh họa sự khác biệt về ngày Lễ Phục Sinh giữa hai hệ thống lịch chính. Đường "Gregorian" (sử dụng thuật toán Gauss) là ngày được đa số các nước phương Tây sử dụng. Đường "Julian" (sử dụng thuật toán Meeus và quy đổi sang lịch Gregorian) cho thấy ngày lễ theo tính toán của Chính Thống Giáo. Trục Y biểu thị ngày trong năm (ví dụ: 100 = ngày thứ 100 của năm).
+            </p>
+            <div class="chart-container">
+                <canvas id="comparisonLineChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-4 text-[var(--accent-primary)]">Tính Thử Lễ Phục Sinh (Gregorian)</h2>
+                <p class="text-base text-[var(--text-secondary)] mb-4">
+                    Nhập một năm (sau 1582) để xem ngày Lễ Phục Sinh (Gregorian) được tính bằng thuật toán Gauss Tối Ưu.
+                </p>
+                <div class="flex flex-col space-y-3">
+                    <label for="yearInput" class="font-semibold text-[var(--text-secondary)]">Nhập năm:</label>
+                    <input type
+="number" id="yearInput" value="2025" class="border-2 border-gray-300 rounded-lg p-2 focus:border-[var(--accent-primary)] focus:outline-none">
+                    <button id="calcButton" class="bg-[var(--accent-primary)] text-white font-bold py-2 px-4 rounded-lg hover:bg-[var(--accent-secondary)] transition-colors">
+                        Tính toán
+                    </button>
+                    <div id="resultOutput" class="text-center bg-gray-100 rounded-lg p-4">
+                        <span class="text-lg font-semibold text-[var(--text-secondary)]">Kết quả sẽ xuất hiện ở đây</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-4 text-[var(--accent-primary)]">Phân Tích Các Phương Pháp</h2>
+                <p class="text-base text-[var(--text-secondary)] mb-4">
+                    Các phương pháp trong tài liệu có thể được phân loại theo cách tiếp cận (thuật toán so với bảng tra cứu) và mức độ phức tạp (số lượng biến và các bước tính toán chính).
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="chart-container-sm">
+                        <canvas id="typeDonutChart"></canvas>
+                    </div>
+                    <div class="chart-container-sm">
+                        <canvas id="complexityBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4 text-[var(--accent-primary)]">Logic Tính Toán Cốt Lõi</h2>
+            <p class="text-base text-[var(--text-secondary)] mb-4">
+                Mặc dù các thuật toán chi tiết khác nhau, hầu hết đều tuân theo một logic cơ bản để tìm "Trăng Rằm Vượt Qua" (Paschal Full Moon - PFM) và sau đó tìm ngày "Chúa Nhật" (Sunday) tiếp theo. Tuy nhiên, cách chúng hiệu chỉnh chu kỳ mặt trăng và mặt trời (Epact, Phương trình Mặt Trời/Mặt Trăng) là khác nhau rõ rệt.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-center mb-3 text-[var(--accent-secondary)]">Hệ Thống Gregorian (Clavius, Gauss, ...)</h3>
+                    <div class="flow-card">Năm (y)</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tính Chỉ số vàng (g) & Thế kỷ (k)</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Hiệu chỉnh Mặt Trời (s) & Mặt Trăng (l)</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tính Epact (e) - Tuổi Trăng</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tìm Rằm Vượt Qua (m) từ Epact</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tìm Thứ trong Tuần (h) của Rằm</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Lễ Phục Sinh = Chúa Nhật sau Rằm (m + 7 - h)</div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-center mb-3 text-[var(--accent-secondary)]">Hệ Thống Julian (Typikon, Meeus, ...)</h3>
+                    <div class="flow-card">Năm (y)</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tính Chu kỳ Mặt Trăng (l) & Mặt Trời (s)</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tính Nền móng (f) từ Chu kỳ Mặt Trăng</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tìm Rằm Vượt Qua (m) từ Nền móng</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tìm Đồng Dạng (c) từ Chu kỳ Mặt Trời</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Tìm Thứ trong Tuần (h) của Rằm</div>
+                    <div class="flow-arrow">&darr;</div>
+                    <div class="flow-card">Lễ Phục Sinh = Chúa Nhật sau Rằm (m + 7 - h)</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center p-6 mt-6 text-[var(--text-secondary)]">
+        Infographic được tạo tự động từ tài liệu "Các Phương Pháp Tính Lễ Phục Sinh".
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                } else {
+                    return label;
+                }
+            };
+
+            const commonChartOptions = (options) => ({
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: tooltipTitleCallback
+                        }
+                    }
+                },
+                ...options
+            });
+
+            const getDayOfYear = (y, m, d) => {
+                const date = new Date(y, m - 1, d);
+                const start = new Date(y, 0, 0);
+                const diff = date - start;
+                const oneDay = 1000 * 60 * 60 * 24;
+                return Math.floor(diff / oneDay);
+            };
+
+            const easterGaussJS = (y) => {
+                const a = y % 19;
+                const b = y % 4;
+                const c = y % 7;
+                const k = Math.floor(y / 100);
+                const p = Math.floor((13 + 8 * k) / 25);
+                const q = Math.floor(k / 4);
+                const m = (15 - p + k - q) % 30;
+                const n = (4 + k - q) % 7;
+                let d = (19 * a + m) % 30;
+                if (d === 29 || (d === 28 && a > 10)) {
+                    d -= 1;
+                }
+                const e = (2 * b + 4 * c + 6 * d + n) % 7;
+                const march = d + e + 22;
+                if (march > 31) {
+                    return { day: d + e - 9, month: 4 }; 
+                } else {
+                    return { day: march, month: 3 };
+                }
+            };
+
+            const meeusJS = (y) => {
+                const a = y % 4;
+                const b = y % 7;
+                const c = y % 19;
+                const d = (19 * c + 15) % 30;
+                const e = (2 * a + 4 * b - d + 34) % 7;
+                const month = Math.floor((d + e + 114) / 31);
+                const day = (d + e + 114) % 31 + 1;
+                return { day: day, month: month };
+            };
+
+            const generateLineChartData = () => {
+                const labels = [];
+                const gregorianData = [];
+                const julianData = [];
+                for (let y = 1990; y <= 2030; y++) {
+                    labels.push(y.toString());
+
+                    const gregDate = easterGaussJS(y);
+                    gregorianData.push(getDayOfYear(y, gregDate.month, gregDate.day));
+
+                    const julianDate = meeusJS(y);
+                    const julianDateObj = new Date(y, julianDate.month - 1, julianDate.day);
+                    
+                    const dayDiff = Math.floor(y / 100) - Math.floor(y / 400) - 2;
+                    
+                    const gregorianEquivDate = new Date(julianDateObj.getTime() + dayDiff * 24 * 60 * 60 * 1000);
+                    
+                    julianData.push(getDayOfYear(
+                        gregorianEquivDate.getFullYear(), 
+                        gregorianEquivDate.getMonth() + 1, 
+                        gregorianEquivDate.getDate()
+                    ));
+                }
+                return { labels, gregorianData, julianData };
+            };
+
+            const lineData = generateLineChartData();
+            const ctxLine = document.getElementById('comparisonLineChart');
+            if (ctxLine) {
+                new Chart(ctxLine, {
+                    type: 'line',
+                    data: {
+                        labels: lineData.labels,
+                        datasets: [
+                            {
+                                label: 'Gregorian (Gauss)',
+                                data: lineData.gregorianData,
+                                borderColor: 'var(--chart-1)',
+                                backgroundColor: 'var(--chart-1)',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Julian (Quy đổi)',
+                                data: lineData.julianData,
+                                borderColor: 'var(--chart-3)',
+                                backgroundColor: 'var(--chart-3)',
+                                tension: 0.1
+                            }
+                        ]
+                    },
+                    options: commonChartOptions({
+                        scales: {
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Ngày trong năm'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Năm'
+                                }
+                            }
+                        }
+                    })
+                });
+            }
+
+            const ctxDonut = document.getElementById('typeDonutChart');
+            if (ctxDonut) {
+                new Chart(ctxDonut, {
+                    type: 'doughnut',
+                    data: {
+                        labels: [['Thuật toán', '(Algorithmic)'], ['Bảng', '(Table-based)']],
+                        datasets: [{
+                            label: 'Loại Phương Pháp',
+                            data: [7, 1], 
+                            backgroundColor: ['var(--chart-2)', 'var(--chart-4)'],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: commonChartOptions({
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Phân Loại Phương Pháp'
+                            }
+                        }
+                    })
+                });
+            }
+
+            const ctxBar = document.getElementById('complexityBarChart');
+            if (ctxBar) {
+                new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Clavius', 'Typikon', 'Bradley', 'Gauss', 'Anonymous', 'Meeus', 'Carter'],
+                        datasets: [{
+                            label: 'Số Biến/Bước Tính Toán Chính',
+                            data: [8, 7, 7, 9, 13, 7, 10], 
+                            backgroundColor: [
+                                'var(--chart-1)', 
+                                'var(--chart-2)', 
+                                'var(--chart-3)', 
+                                'var(--chart-4)', 
+                                'var(--chart-5)',
+                                'var(--chart-1)',
+                                'var(--chart-2)'
+                            ],
+                        }]
+                    },
+                    options: commonChartOptions({
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Độ Phức Tạp Thuật Toán (Ước tính)'
+                            }
+                        }
+                    })
+                });
+            }
+
+            const calcButton = document.getElementById('calcButton');
+            const yearInput = document.getElementById('yearInput');
+            const resultOutput = document.getElementById('resultOutput');
+
+            const calculateAndDisplay = () => {
+                const y = parseInt(yearInput.value, 10);
+                if (!y || y <= 1582) {
+                    resultOutput.innerHTML = `<span class="text-red-600 font-semibold">Vui lòng nhập năm sau 1582</span>`;
+                    return;
+                }
+                const easterDate = easterGaussJS(y);
+                resultOutput.innerHTML = `
+                    <span class="block text-4xl font-bold text-[var(--accent-primary)]">${easterDate.day} / ${easterDate.month} / ${y}</span>
+                    <span class="text-base text-[var(--text-secondary)]">(Ngày / Tháng / Năm)</span>
+                `;
+            };
+
+            if (calcButton) {
+                calcButton.addEventListener('click', calculateAndDisplay);
+                calculateAndDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
